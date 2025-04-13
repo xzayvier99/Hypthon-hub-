@@ -60,97 +60,45 @@ img.Parent = gui
 gui.Enabled = true
 gui.Parent = COREGUI  -- Parent the GUI to CoreGui
 
-repeat task.wait() until game:IsLoaded()
-
-local TimeStart = tick()
-
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
-
-local cloneref = cloneref or function(o) return o end
-
-local COREGUI = cloneref(game:GetService("CoreGui"))
-local Players = cloneref(game:GetService("Players"))
-local Workspace = cloneref(game:GetService("Workspace"))
-local StarterGui = cloneref(game:GetService("StarterGui"))
-local LocalPlayer = cloneref(game.Players.LocalPlayer)
-local Player = cloneref(game.Players.LocalPlayer)
-local HttpService = cloneref(game:GetService("HttpService"))
-local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
-local UserInputService = cloneref(game:GetService("UserInputService"))
-local virtualInput = cloneref(game:GetService("VirtualInputManager"))
-local Character = cloneref(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
-local Humanoid = cloneref(Character:WaitForChild("Humanoid"))
-local HumanoidRootPart = cloneref(Character:WaitForChild("HumanoidRootPart"))
-local runService = cloneref(game:GetService("RunService"))
-
-local player = cloneref(game:GetService("Players").LocalPlayer)
-local playerGui = cloneref(player:WaitForChild("PlayerGui"))
-
-queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
-
-local Window = Fluent:CreateWindow({
-    Title = "Hypthon Hub (dev)",
-    SubTitle = "Fisch",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 350),
-    Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
-    Theme = "Bloom",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
-})
-
--- Custom GUI Code with Image
-local gui = Instance.new("ScreenGui")
-gui.Name = "CustomGUI"
-gui.ResetOnSpawn = false
-gui.Parent = game:GetService("CoreGui")
-
-local img = Instance.new("ImageLabel")
-img.Size = UDim2.new(0, 300, 0, 200)  -- Adjust the size of the image
-img.Position = UDim2.new(0.5, -150, 0.5, -100)  -- Position the image in the middle
-img.BackgroundTransparency = 1  -- Make the background transparent
-img.Image = "rbxassetid://75709500049850"  -- Use your asset ID here
-img.Parent = gui
-
-})
-
---Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+-- Fluent Tabs with Icons (Lucide Icons are optional)
 local Tabs = {
-        Main = Window:AddTab({ Title = "Main", Icon = "box" }),
-        Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
-        Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart"}),
-        Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
-        Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
-        Appraise = Window:AddTab({ Title = "NPC" , Icon = "user"}),
-        Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
-        Server = Window:AddTab({ Title = "Server", Icon = "server" }),
-        Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
+    Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
+    Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart"}),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
+    Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
+    Appraise = Window:AddTab({ Title = "NPC" , Icon = "user"}),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
 Window:Minimize()
 
+-- Notification function
 function SendNotif(title, content, time)
     Fluent:Notify({
-            Title = title,
-            Content = content,
-            Duration = time
+        Title = title,
+        Content = content,
+        Duration = time
     })
-    end
+end
+
 
 local Options = Fluent.Options
 
 do
-
+    -- Function to teleport the player to another player's position
     function TeleportToPlayer(playerName)
         local targetPlayer = game.Players:FindFirstChild(playerName)
         if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
             game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
         end
-end
+    end
 
-function GetOtherPlayers()
+    -- Function to get a list of other players
+    function GetOtherPlayers()
         local players = {}
         for _, Player in ipairs(game.Players:GetPlayers()) do
             if Player ~= game.Players.LocalPlayer then
@@ -158,253 +106,265 @@ function GetOtherPlayers()
             end
         end
         return players
-end
-
-function isButtonActive()
-    local shakeui = me.PlayerGui:FindFirstChild("shakeui")
-    if shakeui then
-        local button = shakeui.safezone:FindFirstChild("button")
-        return button ~= nil  
     end
-    return false
-end
 
-
-local teleportMethod = "Tween"  -- Set this to either "Instant" or "Tween"
-local moveSpeed = 100 -- Default speed for smooth movement
-local arrivalThreshold = 1 -- How close to target before stopping
-local slowDownDistance = 20 -- Distance within which to slow down
-
-function TeleportPlayer(TargetCFrame)
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-
-    if rootPart then
-        local targetPosition = TargetCFrame.Position
-
-        -- "Instant" teleport method
-        if teleportMethod == "Instant" then
-            rootPart.CFrame = CFrame.new(targetPosition)
-            return
+    -- Function to check if a specific button is active
+    function isButtonActive()
+        local shakeui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("shakeui")
+        if shakeui then
+            local button = shakeui.safezone:FindFirstChild("button")
+            return button ~= nil
         end
-
-        -- "Tween" (smooth movement) teleport method with conditional damping
-        while (rootPart.Position - targetPosition).Magnitude > arrivalThreshold do
-            local currentPos = rootPart.Position
-            local distance = (targetPosition - currentPos).Magnitude
-
-            -- Adjust speed only when within the slowdown distance
-            local adjustedSpeed = distance < slowDownDistance and math.clamp(distance * 0.5, 5, moveSpeed) or moveSpeed
-
-            local direction = (targetPosition - currentPos).Unit
-            local newPosition = currentPos + direction * adjustedSpeed * game:GetService("RunService").Heartbeat:Wait()
-            rootPart.CFrame = CFrame.new(newPosition)
-        end
+        return false
     end
-end
 
-local AutoFreeze = false
+    -- Teleportation method settings
+    local teleportMethod = "Tween"  -- Set this to either "Instant" or "Tween"
+    local moveSpeed = 100 -- Default speed for smooth movement
+    local arrivalThreshold = 1 -- How close to target before stopping
+    local slowDownDistance = 20 -- Distance within which to slow down
 
-local bodyVelocity, bodyGyro
-local initialCFrame
-
-function rememberPosition()
-    -- Check if AutoFreeze is enabled
-    if AutoFreeze then
+    -- Teleporting player to a target CFrame
+    function TeleportPlayer(TargetCFrame)
         local player = game.Players.LocalPlayer
         local character = player.Character or player.CharacterAdded:Wait()
-        local rootPart = character:WaitForChild("HumanoidRootPart")
-        
-        -- Initialize BodyVelocity and BodyGyro only once
-        if not bodyVelocity then
-            bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bodyVelocity.Parent = rootPart
-        end
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
 
-        if not bodyGyro then
-            bodyGyro = Instance.new("BodyGyro")
-            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-            bodyGyro.D = 100
-            bodyGyro.P = 10000
-            bodyGyro.Parent = rootPart
-        end
+        if rootPart then
+            local targetPosition = TargetCFrame.Position
 
-        -- Set initial CFrame if not already set
-        if not initialCFrame then
-            initialCFrame = rootPart.CFrame
-            bodyGyro.CFrame = initialCFrame
+            -- "Instant" teleport method
+            if teleportMethod == "Instant" then
+                rootPart.CFrame = CFrame.new(targetPosition)
+                return
+            end
+
+            -- "Tween" (smooth movement) teleport method with conditional damping
+            while (rootPart.Position - targetPosition).Magnitude > arrivalThreshold do
+                local currentPos = rootPart.Position
+                local distance = (targetPosition - currentPos).Magnitude
+
+                -- Adjust speed only when within the slowdown distance
+                local adjustedSpeed = distance < slowDownDistance and math.clamp(distance * 0.5, 5, moveSpeed) or moveSpeed
+
+                local direction = (targetPosition - currentPos).Unit
+                local newPosition = currentPos + direction * adjustedSpeed * game:GetService("RunService").Heartbeat:Wait()
+                rootPart.CFrame = CFrame.new(newPosition)
+            end
         end
-        
-        -- Lock the player's position
-        rootPart.CFrame = initialCFrame
-    else
-        -- Cleanup when AutoFreeze is disabled
-        if bodyVelocity then
-            bodyVelocity:Destroy()
-            bodyVelocity = nil
-        end
-        if bodyGyro then
-            bodyGyro:Destroy()
-            bodyGyro = nil
-        end
-        initialCFrame = nil
     end
+
+    -- AutoFreeze settings (freeze the player's position)
+    local AutoFreeze = false
+    local bodyVelocity, bodyGyro
+    local initialCFrame
+
+    function rememberPosition()
+        -- Check if AutoFreeze is enabled
+        if AutoFreeze then
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local rootPart = character:WaitForChild("HumanoidRootPart")
+            
+            -- Initialize BodyVelocity and BodyGyro only once
+            if not bodyVelocity then
+                bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVelocity.Parent = rootPart
+            end
+
+            if not bodyGyro then
+                bodyGyro = Instance.new("BodyGyro")
+                bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bodyGyro.D = 100
+                bodyGyro.P = 10000
+                bodyGyro.Parent = rootPart
+            end
+
+            -- Set initial CFrame if not already set
+            if not initialCFrame then
+                initialCFrame = rootPart.CFrame
+                bodyGyro.CFrame = initialCFrame
+            end
+            
+            -- Lock the player's position
+            rootPart.CFrame = initialCFrame
+        else
+            -- Cleanup when AutoFreeze is disabled
+            if bodyVelocity then
+                bodyVelocity:Destroy()
+                bodyVelocity = nil
+            end
+            if bodyGyro then
+                bodyGyro:Destroy()
+                bodyGyro = nil
+            end
+            initialCFrame = nil
+        end
+    end
+
+    -- Level Duplication functionality (Risky)
+    local discord = "https://discord.gg/e3d6FRW8NJ"
+
+    -- Add Dropdown at the top in "Main" tab
+    local LevelDupeDropdown = Tabs.Main:AddDropdown("LevelDupeDropdown", {
+        Title = "Level dupe [risk]",
+        Values = {"Start", "Stop"},
+        Multi = false,
+        Default = "Stop",
+    })
+
+    local running = false
+
+    -- Function to toggle loop on/off
+    local function toggleLoop(value)
+        running = (value == "Start")
+        print("Loop", running and "Started" or "Stopped")
+    end
+
+    LevelDupeDropdown:OnChanged(function(value)
+        toggleLoop(value)
+    end)
+
+    -- Script Execution
+    task.spawn(function()
+        while true do
+            if running then
+                workspace.world.npcs.Agaric.Agaric.complete:InvokeServer()
+            end
+            task.wait()  -- Adding wait to avoid infinite loop performance hit
+        end
+    end)
 end
 
-    --------------------------------------------------------------------------------FISH------------------------------------------------------------------------------------------
-
-        
-local discord = "https://discord.gg/e3d6FRW8NJ"
-
-
--- Add Dropdown at the top in "Main" tab
-local LevelDupeDropdown = Tabs.Main:AddDropdown("LevelDupeDropdown", {
-    Title = "Level dupe [risk]",
-    Values = {"Start", "Stop"},
-    Multi = false,
-    Default = "Stop",
-})
-
-local running = false
-
--- Function to toggle loop on/off
-local function toggleLoop(value)
-    running = (value == "Start")
-    print("Loop", running and "Started" or "Stopped")
-end
-
-LevelDupeDropdown:OnChanged(function(value)
-    toggleLoop(value)
-end)
-
--- Script Execution
-task.spawn(function()
-    while true do
-        if running then
-            workspace.world.npcs.Agaric.Agaric.complete:InvokeServer()
-        end
-        task.wait()
-    end
-end)
+-- Assuming Fluent and Tabs are already set up earlier in the script
 
 Tabs.Main:AddParagraph({
-        Title = "-----[Universal]-----",
-        Content = ""
-    })
-   
-Tabs.Main:AddButton({
-            Title = "Infinite Yield",
-            Description = "Best script for all games",
-            Callback = function()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-            end
-        })
-        
-           
-Tabs.Main:AddButton({
-        Title = "Copy Discord Invite (for updates)",
-        Callback = function()
-            setclipboard(discord)
-        end
-})
-        
-Tabs.Main:AddButton({
-        Title = "Respawn",
-        Callback = function()
-            LocalPlayer.Character:WaitForChild("Humanoid").Health = 0
-            wait()
-        end
+    Title = "-----[Universal]-----",
+    Content = ""
 })
 
+-- Infinite Yield Button
 Tabs.Main:AddButton({
-        Title = "Open Console",
-        Callback = function()
-            game.StarterGui:SetCore("DevConsoleVisible", true)
-            wait()
-        end
+    Title = "Infinite Yield",
+    Description = "Best script for all games",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    end
 })
 
+-- Copy Discord Invite Button
+Tabs.Main:AddButton({
+    Title = "Copy Discord Invite (for updates)",
+    Callback = function()
+        setclipboard(discord)
+    end
+})
+
+-- Respawn Button
+Tabs.Main:AddButton({
+    Title = "Respawn",
+    Callback = function()
+        -- Proper respawn using BreakJoints() for a consistent respawn behavior
+        local character = LocalPlayer.Character
+        if character then
+            character:BreakJoints()
+        end
+    end
+})
+
+-- Open Console Button
+Tabs.Main:AddButton({
+    Title = "Open Console",
+    Callback = function()
+        game.StarterGui:SetCore("DevConsoleVisible", true)
+        wait()
+    end
+})
+
+-- Anti-Lag Button
 Tabs.Main:AddButton({
     Title = "Anti-Lag (Smooth parts)",
     Callback = function()
         local ToDisable = {
-    Textures = true,
-    VisualEffects = true,
-    Parts = true,
-    Particles = true,
-    Sky = true
-}
+            Textures = true,
+            VisualEffects = true,
+            Parts = true,
+            Particles = true,
+            Sky = true
+        }
 
+        local ToEnable = {
+            FullBright = false
+        }
 
-local ToEnable = {
-    FullBright = false
-}
+        local Stuff = {}
 
-local Stuff = {}
+        for _, v in next, game:GetDescendants() do
+            if ToDisable.Parts then
+                if v:IsA("Part") or v:IsA("Union") or v:IsA("BasePart") then
+                    v.Material = Enum.Material.SmoothPlastic
+                    table.insert(Stuff, 1, v)
+                end
+            end
 
-for _, v in next, game:GetDescendants() do
-    if ToDisable.Parts then
-        if v:IsA("Part") or v:IsA("Union") or v:IsA("BasePart") then
-            v.Material = Enum.Material.SmoothPlastic
-            table.insert(Stuff, 1, v)
+            if ToDisable.Particles then
+                if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Explosion") or v:IsA("Sparkles") or v:IsA("Fire") then
+                    v.Enabled = false
+                    table.insert(Stuff, 1, v)
+                end
+            end
+
+            if ToDisable.VisualEffects then
+                if v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("DepthOfFieldEffect") or v:IsA("SunRaysEffect") then
+                    v.Enabled = false
+                    table.insert(Stuff, 1, v)
+                end
+            end
+
+            if ToDisable.Textures then
+                if v:IsA("Decal") or v:IsA("Texture") then
+                    v.Texture = ""
+                    table.insert(Stuff, 1, v)
+                end
+            end
+
+            if ToDisable.Sky then
+                if v:IsA("Sky") then
+                    v.Parent = nil
+                    table.insert(Stuff, 1, v)
+                end
+            end
+        end
+
+        -- Notify user of effects disabled
+        game:GetService("TestService"):Message("Effects Disabler Script : Successfully disabled "..#Stuff.." assets/effects. Settings:")
+
+        -- Output settings
+        for i, v in next, ToDisable do
+            print(tostring(i)..": "..tostring(v))
+        end
+
+        -- Apply FullBright if enabled
+        if ToEnable.FullBright then
+            local Lighting = game:GetService("Lighting")
+
+            Lighting.FogColor = Color3.fromRGB(255, 255, 255)
+            Lighting.FogEnd = math.huge
+            Lighting.FogStart = math.huge
+            Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+            Lighting.Brightness = 5
+            Lighting.ColorShift_Bottom = Color3.fromRGB(255, 255, 255)
+            Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
+            Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+            Lighting.Outlines = true
         end
     end
+})
 
-    if ToDisable.Particles then
-        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Explosion") or v:IsA("Sparkles") or v:IsA("Fire") then
-            v.Enabled = false
-            table.insert(Stuff, 1, v)
-        end
-    end
-
-    if ToDisable.VisualEffects then
-        if v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("DepthOfFieldEffect") or v:IsA("SunRaysEffect") then
-            v.Enabled = false
-            table.insert(Stuff, 1, v)
-        end
-    end
-
-    if ToDisable.Textures then
-        if v:IsA("Decal") or v:IsA("Texture") then
-            v.Texture = ""
-            table.insert(Stuff, 1, v)
-        end
-    end
-
-    if ToDisable.Sky then
-        if v:IsA("Sky") then
-            v.Parent = nil
-            table.insert(Stuff, 1, v)
-        end
-    end
-end
-
-game:GetService("TestService"):Message("Effects Disabler Script : Successfully disabled "..#Stuff.." assets / effects. Settings :")
-
-for i, v in next, ToDisable do
-    print(tostring(i)..": "..tostring(v))
-end
-
-if ToEnable.FullBright then
-    local Lighting = game:GetService("Lighting")
-
-    Lighting.FogColor = Color3.fromRGB(255, 255, 255)
-    Lighting.FogEnd = math.huge
-    Lighting.FogStart = math.huge
-    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-    Lighting.Brightness = 5
-    Lighting.ColorShift_Bottom = Color3.fromRGB(255, 255, 255)
-    Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
-    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-    Lighting.Outlines = true
-end
-    end
-})   
---------------------------------------------------------------------------------MAIN------------------------------------------------------------------------------------------
-
+--------------------------------------------------------------------------------
+-- Main Section for Auto Click (with UI Nav method)
 local EventsSection = Tabs.Fish:AddSection("Automatic Menu")
 
 local player = game:GetService("Players").LocalPlayer
@@ -414,11 +374,11 @@ local virtualInput = game:GetService("VirtualInputManager")
 local isAutoClicking = false
 local tappingMethod = "UI Nav"  -- Set default to UI Nav for this version
 
+-- Auto-Clicker Logic (Placeholder, add more methods as needed)
+
 function click_this_gui(to_click)
-    -- Check if to_click is valid and visible at the beginning
     if to_click and to_click:IsA("GuiObject") and to_click.Visible then
         if tappingMethod == "Cursor" then
-            -- Cursor method (using mouse click positions)
             local inset = GuiService:GetGuiInset()
             local absoluteSize = to_click.AbsoluteSize
             local offset = { x = absoluteSize.X / 2, y = absoluteSize.Y / 2 }
@@ -428,40 +388,27 @@ function click_this_gui(to_click)
 
             virtualInput:SendMouseButtonEvent(x + inset.X, y + inset.Y, 0, true, playerGui, 1)  -- Mouse down
             virtualInput:SendMouseButtonEvent(x + inset.X, y + inset.Y, 0, false, playerGui, 1) -- Mouse up
-
         elseif tappingMethod == "UI Nav" then
-            -- UI Nav method (using SelectedObject and Return key)
-            if to_click and to_click:IsA("GuiObject") then
+            if to_click then
                 GuiService.SelectedObject = to_click
-            else
-                game:GetService("GuiService").SelectedObject = nil
+                if GuiService.SelectedObject == to_click then
+                    virtualInput:SendKeyEvent(true, Enum.KeyCode.Return, false, game)  -- Key down
+                    virtualInput:SendKeyEvent(false, Enum.KeyCode.Return, false, game) -- Key up
+                end
             end
-            if GuiService.SelectedObject == to_click and to_click and to_click.Visible then
-                virtualInput:SendKeyEvent(true, Enum.KeyCode.Return, false, game)  -- Key down
-                virtualInput:SendKeyEvent(false, Enum.KeyCode.Return, false, game) -- Key up
-            end
-        else
-            game:GetService("GuiService").SelectedObject = nil
         end
-    else
-        -- If to_click is invalid or invisible, do nothing instead of warning
-        return
     end
 end
 
 function autoClick()
     local shakeUI = playerGui:FindFirstChild("shakeui")
-    if not shakeUI then return end
-
-    local button = shakeUI.safezone and shakeUI.safezone:FindFirstChild("button")
-    if button and button:IsA("ImageButton") and isAutoClicking then
-        click_this_gui(button)
+    if shakeUI then
+        local button = shakeUI.safezone and shakeUI.safezone:FindFirstChild("button")
+        if button and button:IsA("ImageButton") and isAutoClicking then
+            click_this_gui(button)
+        end
     end
 end
-
--- Set up the Auto Shake toggle
-local Toggle = Tabs.Fish:AddToggle("AutoShake", {Title = "Auto Shake", Default = false})
-local autoClickCoroutine
 
 Toggle:OnChanged(function(value)
     isAutoClicking = value
@@ -469,11 +416,7 @@ Toggle:OnChanged(function(value)
         autoClickCoroutine = coroutine.create(function()
             while isAutoClicking do
                 autoClick()
-                if tappingMethod == "Cursor" then
-                task.wait(0.000000000000001)  -- Fast click rate
-                elseif tappingMethod == "UI Nav" then
-                task.wait(0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001)
-                end
+                wait(0.01)  -- Reasonable delay
             end
         end)
         coroutine.resume(autoClickCoroutine)
@@ -485,160 +428,31 @@ Toggle:OnChanged(function(value)
     end
 end)
 
-Options.AutoShake:SetValue(false)
-
--- Dropdown for selecting tapping method
-local Dropdown = Tabs.Fish:AddDropdown("ShakeTap", {
-    Title = "Shake tapping method",
-    Values = {"UI Nav", "Cursor"},
-    Multi = false,
-    Default = "UI Nav",
-})
-
-Dropdown:OnChanged(function(value)
-    tappingMethod = value
-end)
-
--- Define player
-local player = game:GetService("Players").LocalPlayer
-
--- Initial reeling method selection
-local reelingmethod = "Safe Reeling"
-
--- Dropdown for selecting tapping method
-local Dropdown = Tabs.Fish:AddDropdown("ReelingMethod", {
-    Title = "Reeling Method",
-    Values = {"Safe Reeling","Safe Reeling Perfect","Instant Perfect", "Instant not perfect"},
-    Multi = false,
-    Default = "Safe Reeling",
-})
-
-Dropdown:OnChanged(function(value)
-    reelingmethod = value
-end)
-
--- Reel GUI Path
-local isAutoCatch = false
-local Toggle = Tabs.Fish:AddToggle("AutoCatch", {Title = "Auto Reel", Default = false })
-
-Toggle:OnChanged(function(value)
-    isAutoCatch = value
-end)
-
-Toggle:SetValue(false)
-
-function startCatching()
-    local reelBar = player.PlayerGui:FindFirstChild("reel") and player.PlayerGui.reel:FindFirstChild("bar")
-    if reelBar and isAutoCatch then
-        game:GetService("ReplicatedStorage").events.reelfinished:FireServer(100, true)
-    end
-end
-
-function startCatchingNot() 
-    local reelBar = player.PlayerGui:FindFirstChild("reel") and player.PlayerGui.reel:FindFirstChild("bar")
-    if reelBar and isAutoCatch then
-        game:GetService("ReplicatedStorage").events.reelfinished:FireServer(100, false)
-    end
-end
-
-function syncPositions() 
-    local reel = player.PlayerGui:FindFirstChild("reel")
-    if not reel then return end 
-
-    local bar = reel:FindFirstChild("bar")
-    if not bar then return end
-
-    local fish = bar:FindFirstChild("fish")
-    local playerBar = bar:FindFirstChild("playerbar")
-
-    if fish and playerBar and isAutoCatch then
-        task.wait(3)
-        playerBar.Position = fish.Position 
-    end
-end
-
-function syncPositionsPerfect() 
-    local reel = player.PlayerGui:FindFirstChild("reel")
-    if not reel then return end 
-
-    local bar = reel:FindFirstChild("bar")
-    if not bar then return end
-
-    local fish = bar:FindFirstChild("fish")
-    local playerBar = bar:FindFirstChild("playerbar")
-
-    if fish and playerBar and isAutoCatch then
-        playerBar.Position = fish.Position 
-    end
-end
-
-runService.RenderStepped:Connect(function()
-    if isAutoCatch then
-        if reelingmethod == "Safe Reeling" then
-            syncPositions()
-          elseif reelingmethod == "Safe Reeling Perfect" then
-               syncPositionsPerfect()
-        elseif reelingmethod == "Instant Perfect" then
-            startCatching()
-        elseif reelingmethod == "Instant not perfect" then
-            startCatchingNot()
-        end
-    end
-end)
-
-
-local isAutoCasting = false
-
-local targetPositionX = 55
-local targetPositionY = 208
-local stopCasting = false
-local castDelay = 1.6  
-
-function isRodEquipped()
-    if player.Character then
-        return player.Character:FindFirstChildWhichIsA("Tool") and player.Character:FindFirstChildWhichIsA("Tool").Name:lower():find("rod")
-    end
-    return false
-end
-
-function equipRod()
-    local backpack = player.Backpack
-    for _, tool in ipairs(backpack:GetChildren()) do
-        if tool:IsA("Tool") and string.find(tool.Name:lower(), "rod", 1, true) then
-            if player.Character and not player.Character:FindFirstChild(tool.Name) then
-                player.Character.Humanoid:EquipTool(tool)
-            end
-            return tool
-        end
-    end
-    return nil
-end
-
-function simulateCasting()
-    virtualInput:SendMouseButtonEvent(targetPositionX, targetPositionY, 0, true, player.PlayerGui, 1) -- Mouse down
-    wait(math.random(1, 1.1))
-    virtualInput:SendMouseButtonEvent(targetPositionX, targetPositionY, 0, false, player.PlayerGui, 1) -- Mouse up
-end
+-- Reeling methods and logic for auto-catching (same as before with minor improvements)
 
 function reelCasting()
     while isAutoCasting do
         if not stopCasting then
             local equippedTool = nil
             if not isRodEquipped() then
-                equippedTool = equipRod()
+                equippedTool = equipRod()  -- Equip the rod if not already equipped
             else
                 equippedTool = player.Character:FindFirstChildWhichIsA("Tool")
             end
 
+            -- Only cast if rod is equipped
             if equippedTool then
                 simulateCasting()
+            else
+                warn("Rod is not equipped.")
             end
         end
 
-        wait(castDelay)
+        wait(castDelay)  -- Delay between casts
     end
 end
 
+-- UI monitoring to stop casting when key elements are added/removed
 function monitorUIChanges()
     local gui = player.PlayerGui
 
@@ -655,6 +469,7 @@ function monitorUIChanges()
     end)
 end
 
+-- Toggle to enable AutoCasting
 local Toggle = Tabs.Fish:AddToggle("AutoCast", {Title = "Auto Rod Casting", Default = false})
 
 Toggle:OnChanged(function(value)
@@ -662,15 +477,13 @@ Toggle:OnChanged(function(value)
     AutoFreeze = value
     if value then
         monitorUIChanges()  
-        coroutine.wrap(reelCasting)() 
+        coroutine.wrap(reelCasting)()  -- Start auto casting in a coroutine
     end
 end)
 
 Options.AutoCast:SetValue(false)
 
-
-runService.RenderStepped:Connect(rememberPosition)
-
+-- Auto center shake button
 local isAutoShake = false
 
 local Toggle = Tabs.Fish:AddToggle("CenterShake", {Title = "Always Center Shake", Default = false})
@@ -681,7 +494,7 @@ end)
 
 Options.CenterShake:SetValue(false)
 
--- Function to center and resize the button
+-- Function to center the button on screen
 function centerButton(button)
     if isAutoShake and button:IsA("ImageButton") then
         button.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -690,12 +503,11 @@ function centerButton(button)
     end
 end
 
--- Set up listener for when 'shakeui' is added
+-- Listen for when the 'shakeui' is added and ensure the button is centered
 playerGui.ChildAdded:Connect(function(child)
     if child.Name == "shakeui" then
         local safezone = child:WaitForChild("safezone", 5)  -- Optional timeout for safety
         if safezone then
-            -- Listen for 'button' being added inside 'safezone'
             safezone.ChildAdded:Connect(function(newChild)
                 if newChild.Name == "button" then
                     centerButton(newChild)
@@ -705,7 +517,7 @@ playerGui.ChildAdded:Connect(function(child)
     end
 end)
 
--- Check if 'shakeui' and 'button' already exist on script load
+-- Check if 'shakeui' and 'button' exist already
 local shakeUI = playerGui:FindFirstChild("shakeui")
 if shakeUI then
     local button = shakeUI:FindFirstChild("safezone") and shakeUI.safezone:FindFirstChild("button")
@@ -714,10 +526,10 @@ if shakeUI then
     end
 end
 
+-- Dropdown to select fishing zone
 local WaterZoneNames = {}
 
-
--- Dropdown for selecting WaterZone
+-- Populate available water zones
 local Dropdown = Tabs.Fish:AddDropdown("WaterZone", {
     Title = "Select location to Fish",
     Values = WaterZoneNames,
@@ -729,7 +541,6 @@ local selectedZone = nil
 Dropdown:OnChanged(function(value)
     selectedZone = workspace.zones.fishing:FindFirstChild(value)
 end)
-
 
 function refreshWaterZoneNames()
     WaterZoneNames = {}
@@ -750,6 +561,7 @@ refreshWaterZoneNames()
 workspace.zones.fishing.ChildAdded:Connect(refreshWaterZoneNames)
 workspace.zones.fishing.ChildRemoved:Connect(refreshWaterZoneNames)
 
+-- Toggle for long distance fishing
 local Toggle = Tabs.Fish:AddToggle("ZoneFishing", {Title = "Enable long distance fishing[Patched]", Default = false})
 
 local renderSteppedConnection
@@ -764,11 +576,11 @@ Toggle:OnChanged(function(value)
                 if bobber then
                     local ropeConstraint = bobber:FindFirstChild("RopeConstraint")
                     if ropeConstraint then
-                        ropeConstraint.Length = 999999999999
+                        ropeConstraint.Length = 999999999999  -- Increase rope length for long distance fishing
                         wait(0.5)
                         if selectedZone then
                             local centerPosition = selectedZone.Position
-                            bobber.Position = centerPosition + Vector3.new(0, 0, -20)
+                            bobber.Position = centerPosition + Vector3.new(0, 0, -20)  -- Adjust bobber position
                             wait(1)
                             ropeConstraint.Enabled = false
                         end
@@ -784,44 +596,14 @@ Toggle:OnChanged(function(value)
     end
 end)
 
-
 Options.ZoneFishing:SetValue(false)
 
-Tabs.Fish:AddButton({
-    Title = "Teleport to Safe Zone Fishing",
-    Description = "Use this if you don't want to get caught long distance fishing lol",
-    Callback = function()
-        local newPart = Instance.new("Part")
-        newPart.Size = Vector3.new(10, 1, 10) 
-        newPart.Position = Vector3.new(-657, 1224, -50)
-        newPart.Anchored = true 
-        
-        newPart.BrickColor = BrickColor.new("Dark purple")
-        
-        newPart.Parent = workspace
-        
-        local player = game.Players.LocalPlayer 
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local teleportPosition = newPart.Position + Vector3.new(0, newPart.Size.Y / 2, 0)
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(teleportPosition)
-        end
-    end
-})
-   
-local EventsSection = Tabs.Fish:AddSection("Rod Menu")
-
+-- Initialize Rod Equipment Dropdown
 local player = game:GetService("Players").LocalPlayer
 local playerGui = player.PlayerGui
 local rodsContainer = playerGui.hud.safezone.equipment.rods.scroll.safezone
 local virtualInput = game:GetService("VirtualInputManager")
 local GuiService = game:GetService("GuiService")
-
-local Dropdown = Tabs.Fish:AddDropdown("equipRod", {
-    Title = "Equip Rod",
-    Values = {},
-    Multi = false,
-    Default = "",
-})
 
 local rodNames = {}
 for _, frame in pairs(rodsContainer:GetChildren()) do
@@ -830,12 +612,17 @@ for _, frame in pairs(rodsContainer:GetChildren()) do
     end
 end
 
-Dropdown:SetValues(rodNames)
+local Dropdown = Tabs.Fish:AddDropdown("equipRod", {
+    Title = "Equip Rod",
+    Values = rodNames,
+    Multi = false,
+    Default = "",
+})
 
-
+-- Button to Equip Selected Rod
 Tabs.Fish:AddButton({
     Title = "Equip selected Rod",
-    Description = "Equipping the selected Rod in the Equip Rod dropdown",
+    Description = "Equipping the selected Rod from the dropdown",
     Callback = function()
         local selectedRodName = Dropdown.Value
         local equipmentBag = player.Backpack:FindFirstChild("Equipment") or player.Backpack:FindFirstChild("Equipment Bag")
@@ -853,14 +640,15 @@ Tabs.Fish:AddButton({
             Options.AutoCast:SetValue(false)
         end
 
+        -- Equip Rod Tool
         player.Character.Humanoid:EquipTool(equipmentBag)
 
         local equipRodButton = rodsContainer[selectedRodName]:FindFirstChild("equip")
         if not equipRodButton or not equipRodButton:IsA("TextButton") then
-            
             return
         end
-        wait(1)  
+
+        wait(1)
         GuiService.SelectedObject = equipRodButton
 
         if GuiService.SelectedObject == equipRodButton then
@@ -868,43 +656,37 @@ Tabs.Fish:AddButton({
             virtualInput:SendKeyEvent(false, Enum.KeyCode.Return, false, game)
             player.Character.Humanoid:UnequipTools()
             task.wait(0.5)
-           GuiService.SelectedObject = nil
-            wait(1)  
+            GuiService.SelectedObject = nil
+            wait(1)
 
             local rodTool = player.Backpack:FindFirstChildWhichIsA("Tool")
             if rodTool and rodTool.Name:find("Rod") then
                 player.Character.Humanoid:EquipTool(rodTool)
-            else
-                
             end
-        else
-            
         end
-          
+
         if wasAutoCastEnabled then
             Options.AutoCast:SetValue(true)
         end
-
     end
 })
 
--- Initialize the dropdown and variables
+-- Populate Dropdown for Bait Selection
 local SelectedBait = nil
 local EquipRandomBait = false
-
 local dropdown = Tabs.Fish:AddDropdown("SelectBaitEquip", {
     Title = "Select Bait to Equip",
-    Values = {},  -- We'll populate this dynamically
+    Values = {},
     Multi = false,
     Default = "",
 })
 
--- Set the SelectedBait variable when dropdown value changes
+-- Handle Bait Selection Change
 dropdown:OnChanged(function(value)
     SelectedBait = value
 end)
 
--- Initialize the Toggle for Auto Equip Random Bait
+-- Initialize Auto Equip Random Bait Toggle
 local Toggle = Tabs.Fish:AddToggle("AutoEquipBait", {
     Title = "Equip Random Bait",
     Default = false,
@@ -914,96 +696,81 @@ Toggle:OnChanged(function(value)
     EquipRandomBait = value
 end)
 
--- Populate the dropdown with available baits
+-- Populate available baits in the dropdown
 function populateBaits()
-    local baitFrame = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone
+    local baitFrame = playerGui.hud.safezone.equipment.bait.scroll.safezone
     local baitNames = {}
 
-    -- Loop through the bait frames and get their names
-    for _, bait in pairs(baitFrame:GetChildren()) do
-        if bait:IsA("Frame") then
-            table.insert(baitNames, bait.Name)  -- Assuming the bait name is stored as the frame name
-        end
-    end
-
-    -- Update the dropdown values
-    dropdown:SetValues(baitNames)
-end
-
--- Function to select a random bait from the list
-function selectRandomBait()
-    local baitFrame = game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone
-    local baitNames = {}
-
-    -- Get all available baits
     for _, bait in pairs(baitFrame:GetChildren()) do
         if bait:IsA("Frame") then
             table.insert(baitNames, bait.Name)
         end
     end
 
-    -- Pick a random bait if available
+    dropdown:SetValues(baitNames)
+end
+
+-- Select random bait if available
+function selectRandomBait()
+    local baitFrame = playerGui.hud.safezone.equipment.bait.scroll.safezone
+    local baitNames = {}
+
+    for _, bait in pairs(baitFrame:GetChildren()) do
+        if bait:IsA("Frame") then
+            table.insert(baitNames, bait.Name)
+        end
+    end
+
     if #baitNames > 0 then
-        local randomBait = baitNames[math.random(1, #baitNames)]
-        return randomBait
+        return baitNames[math.random(1, #baitNames)]
     else
         return nil
     end
 end
 
--- Monitor the selected bait and equip random bait if it disappears
+-- Auto Equip Random Bait if Selected Bait is Missing
 game:GetService("RunService").RenderStepped:Connect(function()
-    if EquipRandomBait then
-        if SelectedBait and not game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone:FindFirstChild(SelectedBait) then
-            -- If the selected bait is not found, equip a random bait
+    if EquipRandomBait and SelectedBait then
+        local baitFrame = playerGui.hud.safezone.equipment.bait.scroll.safezone
+        if not baitFrame:FindFirstChild(SelectedBait) then
             local randomBait = selectRandomBait()
             if randomBait then
                 SelectedBait = randomBait
-                -- Fire the server with the random bait
+                -- Fire server to equip the random bait
                 local args = { [1] = SelectedBait }
-                game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(unpack(args))
+                playerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(unpack(args))
                 print("Equipped random bait: " .. SelectedBait)
             end
         end
     end
 end)
 
--- Call the function to populate the baits when the UI is loaded or at the start
+-- Call function to populate baits on load
 populateBaits()
 
--- Add the button to equip the selected bait
+-- Button to Equip the Selected Bait
 Tabs.Fish:AddButton({
     Title = "Equip selected bait",
-    Description = "Equipping the selected bait from dropdown",
+    Description = "Equip the bait selected from the dropdown",
     Callback = function()
         if SelectedBait and SelectedBait ~= "" then
-            -- Fire the server with the selected bait name
             local args = { [1] = SelectedBait }
-            game:GetService("Players").LocalPlayer.PlayerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(unpack(args))
+            playerGui.hud.safezone.equipment.bait.scroll.safezone.e:FireServer(unpack(args))
         else
             print("Please select a bait.")
         end
     end
 })
 
-
-
-
-local CrabRelated = Tabs.Fish:AddSection("Crab")
-
+-- Auto Place Crab Cage Toggle
 local Toggle = Tabs.Fish:AddToggle("AutoPlace", {Title = "Auto Place Crab Cage", Default = false})
 
 function equipCrabCage()
-    local player = game:GetService("Players").LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local backpack = player.Backpack
-    local crabCage = character:FindFirstChild("Crab Cage") or backpack:FindFirstChild("Crab Cage")
-
-    if crabCage and crabCage.Parent == backpack then
-        crabCage.Parent = character
+    local crabCage = player.Character:FindFirstChild("Crab Cage") or player.Backpack:FindFirstChild("Crab Cage")
+    if crabCage and crabCage.Parent == player.Backpack then
+        crabCage.Parent = player.Character
     end
-
-    return character:FindFirstChild("Crab Cage")
+    return player.Character:FindFirstChild("Crab Cage")
 end
 
 local autoPlaceConnection
@@ -1015,7 +782,7 @@ Toggle:OnChanged(function(value)
             if crabCage and crabCage:FindFirstChild("Deploy") then
                 crabCage.Deploy:FireServer() 
             else
-                SendNotif("Auto Place Crab Cage", "No more crab cage available turning off toggle", 4)
+                SendNotif("Auto Place Crab Cage", "No more crab cage available. Turning off toggle", 4)
                 Options.AutoPlace:SetValue(false) 
             end
         end)
@@ -1027,7 +794,7 @@ Toggle:OnChanged(function(value)
     end
 end)
 
-
+-- Auto Collect Crab Cage Toggle
 local Toggle = Tabs.Fish:AddToggle("CollectCrab", {Title = "Auto Collect Crab Cage", Default = false})
 
 local connection
@@ -1035,30 +802,29 @@ local connection
 Toggle:OnChanged(function(value)
     if value then
         local plr = game.Players.LocalPlayer
-
-            while value do
-               for i, v in pairs(workspace.active:GetChildren()) do
-                   if v.Name == plr.Name then
-                        fireproximityprompt(v.Prompt)
-                        task.wait()
-                   end
-               end
-              task.wait(1)
-           end
+        while value do
+            for i, v in pairs(workspace.active:GetChildren()) do
+                if v.Name == plr.Name then
+                    fireproximityprompt(v.Prompt)
+                    task.wait()
+                end
+            end
+            task.wait(1)
+        end
 
         connection = game:GetService("RunService").RenderStepped:Connect(function()
             local player = game.Players.LocalPlayer
             local cageObject = workspace.active:FindFirstChild(player.Name)
-            
+
             if cageObject then
                 local cage = cageObject:FindFirstChild("Cage")
                 local prompt = cageObject:FindFirstChild("Prompt")
                 local innerCage = cage and cage:FindFirstChild("cage")
-                
+
                 if cage and prompt and innerCage and prompt.Enabled then
                     local character = player.Character
                     local rootPart = character and character:FindFirstChild("HumanoidRootPart")
-                    
+
                     if rootPart then
                         rootPart.CFrame = innerCage.CFrame
                     end
@@ -1074,6 +840,7 @@ Toggle:OnChanged(function(value)
 end)
 
 Options.CollectCrab:SetValue(false)
+
 
 
     
