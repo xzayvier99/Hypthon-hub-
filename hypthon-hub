@@ -1,59 +1,41 @@
-repeat task.wait() until game:IsLoaded()
+repeat task.wait() until game:IsLoaded()  -- Wait until the game is fully loaded
 
-local TimeStart = tick()
-
--- Load Fluent and other necessary modules
+-- Define the necessary imports and services
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
-local cloneref = cloneref or function(o) return o end
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
-local COREGUI = cloneref(game:GetService("CoreGui"))
-local Players = cloneref(game:GetService("Players"))
-local Workspace = cloneref(game:GetService("Workspace"))
-local StarterGui = cloneref(game:GetService("StarterGui"))
-local LocalPlayer = cloneref(game.Players.LocalPlayer)
-local Player = cloneref(game.Players.LocalPlayer)
-local HttpService = cloneref(game:GetService("HttpService"))
-local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
-local UserInputService = cloneref(game:GetService("UserInputService"))
-local virtualInput = cloneref(game:GetService("VirtualInputManager"))
-local Character = cloneref(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
-local Humanoid = cloneref(Character:WaitForChild("Humanoid"))
-local HumanoidRootPart = cloneref(Character:WaitForChild("HumanoidRootPart"))
-local runService = cloneref(game:GetService("RunService"))
-
-local player = cloneref(game:GetService("Players").LocalPlayer)
-local playerGui = cloneref(player:WaitForChild("PlayerGui"))
-
--- Create a Fluent Window
+-- Create a simple Fluent window
 local Window = Fluent:CreateWindow({
     Title = "Hypthon Hub (dev)",
     SubTitle = "Fishing",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 350),
-    Acrylic = false, -- Disable blur if you want
+    Acrylic = false,  -- Disabling blur for simplicity
     Theme = "Bloom",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Minimize keybinding
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- Add Tabs to the Window
+-- Create the "Fish" tab
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
-    Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart" }),
-    Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
-    Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
-    Appraise = Window:AddTab({ Title = "NPC" , Icon = "user" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
-    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
-Window:Minimize()
+-- Create the section within the "Fishing" tab
+local FishSection = Tabs.Fish:AddSection("Fishing UI")
 
--- Notification function
+-- Create the image label (Roblox logo) for the UI
+local ImageLabel = Instance.new("ImageLabel")
+ImageLabel.Size = UDim2.new(0, 580, 0, 350)  -- Set the size of the image
+ImageLabel.Position = UDim2.new(0.5, -290, 0.5, -175)  -- Center it on the screen
+ImageLabel.Image = "rbxassetid://403157015"  -- Roblox logo asset ID
+ImageLabel.BackgroundTransparency = 1  -- Make the background transparent
+ImageLabel.Parent = playerGui  -- Parent it to the PlayerGui to make it visible
+
+-- Function to send a notification using Fluent
 function SendNotif(title, content, time)
     Fluent:Notify({
         Title = title,
@@ -62,20 +44,21 @@ function SendNotif(title, content, time)
     })
 end
 
--- Add an image to the Player GUI to test loading
-local imageLabel = Instance.new("ImageLabel")
-imageLabel.Size = UDim2.new(0, 580, 0, 350)  -- Set size
-imageLabel.Position = UDim2.new(0.5, -290, 0.5, -175)  -- Center it on the screen
-imageLabel.Image = "rbxassetid://403157015"  -- Roblox logo asset ID
-imageLabel.BackgroundTransparency = 1  -- Make the background transparent
-imageLabel.Parent = playerGui  -- Parent it to the PlayerGui
+-- Example usage of Fluent to show a message in the UI
+SendNotif("Info", "Roblox logo loaded successfully.", 3)
 
--- Output for debugging purposes
-print("ImageLabel with Roblox logo is created. Please check the GUI.")
+-- A simple function to demonstrate saving using the SaveManager (optional)
+SaveManager:Save("PlayerData", {
+    Coins = 1000,
+    Bait = "Worms",
+    Rod = "Basic Rod"
+})
 
--- Other potential functions or options can go here, e.g., teleport, fishing, etc.
+-- Output debug messages to verify functionality
+print("GUI and ImageLabel with Roblox logo created successfully.")
 
--- Add Main functionalities here...
+-- Optional: Add additional functionality to the GUI as needed
+
 
 
 
