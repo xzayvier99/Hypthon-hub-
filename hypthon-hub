@@ -8,6 +8,25 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
+-- Function to display the logo
+function displayLogo()
+    local screenGui = Instance.new("ScreenGui")
+    local imageLabel = Instance.new("ImageLabel")
+    
+    screenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.Name = "ExecutorLogo"
+
+    imageLabel.Parent = screenGui
+    imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    imageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    imageLabel.Size = UDim2.new(0, 300, 0, 150)
+    imageLabel.Image = "https://i.imgur.com/cKKM90Y.png"
+    imageLabel.BackgroundTransparency = 1
+end
+
+-- Call the function
+displayLogo()
+
 
 
 local cloneref = cloneref or function(o) return o end
