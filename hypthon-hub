@@ -1,3 +1,64 @@
+repeat task.wait() until game:IsLoaded()
+
+local TimeStart = tick()
+
+-- Importing Fluent and Addons
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Define cloneref function (handles compatibility issues)
+local cloneref = cloneref or function(o) return o end
+
+-- Service references
+local COREGUI = cloneref(game:GetService("CoreGui"))
+local Players = cloneref(game:GetService("Players"))
+local Workspace = cloneref(game:GetService("Workspace"))
+local StarterGui = cloneref(game:GetService("StarterGui"))
+local LocalPlayer = cloneref(game.Players.LocalPlayer)
+local Player = cloneref(game.Players.LocalPlayer)
+local HttpService = cloneref(game:GetService("HttpService"))
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+local UserInputService = cloneref(game:GetService("UserInputService"))
+local virtualInput = cloneref(game:GetService("VirtualInputManager"))
+local Character = cloneref(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
+local Humanoid = cloneref(Character:WaitForChild("Humanoid"))
+local HumanoidRootPart = cloneref(Character:WaitForChild("HumanoidRootPart"))
+local runService = cloneref(game:GetService("RunService"))
+
+local player = cloneref(game:GetService("Players").LocalPlayer)
+local playerGui = cloneref(player:WaitForChild("PlayerGui"))
+
+-- Queue Teleport function (for teleporting)
+queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+
+-- Fluent Window Setup
+local Window = Fluent:CreateWindow({
+    Title = "Hypthon Hub (dev)",
+    SubTitle = "Fisch",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 350),
+    Acrylic = false,  -- Set false to remove blur effects
+    Theme = "Bloom",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- Custom Image GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "CustomGUI"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")  -- Ensure the GUI is parented to CoreGui
+
+local img = Instance.new("ImageLabel")
+img.Size = UDim2.new(0, 300, 0, 200)  -- Image size
+img.Position = UDim2.new(0.5, -150, 0.5, -100)  -- Position in the center of the screen
+img.BackgroundTransparency = 1  -- Make background transparent
+img.Image = "rbxassetid://75709500049850"  -- Image asset ID
+img.Parent = gui
+
+-- Ensure the GUI is enabled and visible
+gui.Enabled = true
+gui.Parent = COREGUI  -- Parent the GUI to CoreGui
 
 repeat task.wait() until game:IsLoaded()
 
