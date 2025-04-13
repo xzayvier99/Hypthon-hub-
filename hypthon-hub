@@ -1,63 +1,90 @@
-repeat task.wait() until game:IsLoaded()  -- Wait until the game is fully loaded
+-- Wait until the game is fully loaded
+repeat task.wait() until game:IsLoaded()
 
--- Define the necessary imports and services
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+-- Basic debug message to confirm that the game is loaded
+print("Game Loaded Successfully!")
 
+-- Local Variables for Roblox Services
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local HttpService = game:GetService("HttpService")
+local runService = game:GetService("RunService")
 
--- Create a simple Fluent window
+-- Load Fluent GUI Library
+local Fluent
+local status, error = pcall(function()
+    Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+end)
+
+if not Fluent then
+    print("Failed to load Fluent. Error: " .. error)
+    return
+else
+    print("Fluent Loaded Successfully!")
+end
+
+-- Create a simple Image Label to show the Roblox logo
+local ImageLabel = Instance.new("ImageLabel")
+ImageLabel.Size = UDim2.new(0, 580, 0, 350)  -- Set size
+ImageLabel.Position = UDim2.new(0.5, -290, 0.5, -175)  -- Center on screen
+ImageLabel.Image = "rbxassetid://403157015"  -- Roblox logo
+ImageLabel.BackgroundTransparency = 1  -- Transparent background
+ImageLabel.Parent = playerGui  -- Parent to PlayerGui for visibility
+
+-- Create the Fluent Window
 local Window = Fluent:CreateWindow({
     Title = "Hypthon Hub (dev)",
     SubTitle = "Fishing",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 350),
-    Acrylic = false,  -- Disabling blur for simplicity
+    Acrylic = false,
     Theme = "Bloom",
-    MinimizeKey = Enum.KeyCode.LeftControl
+    MinimizeKey = Enum.KeyCode.LeftControl  -- Used to minimize window
 })
 
--- Create the "Fish" tab
+-- Add Tabs to the Window
 local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
     Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
+    Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart" }),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
+    Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
+    Appraise = Window:AddTab({ Title = "NPC", Icon = "user" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
--- Create the section within the "Fishing" tab
-local FishSection = Tabs.Fish:AddSection("Fishing UI")
-
--- Create the image label (Roblox logo) for the UI
-local ImageLabel = Instance.new("ImageLabel")
-ImageLabel.Size = UDim2.new(0, 580, 0, 350)  -- Set the size of the image
-ImageLabel.Position = UDim2.new(0.5, -290, 0.5, -175)  -- Center it on the screen
-ImageLabel.Image = "rbxassetid://403157015"  -- Roblox logo asset ID
-ImageLabel.BackgroundTransparency = 1  -- Make the background transparent
-ImageLabel.Parent = playerGui  -- Parent it to the PlayerGui to make it visible
-
--- Function to send a notification using Fluent
-function SendNotif(title, content, time)
-    Fluent:Notify({
-        Title = title,
-        Content = content,
-        Duration = time
-    })
-end
-
--- Example usage of Fluent to show a message in the UI
-SendNotif("Info", "Roblox logo loaded successfully.", 3)
-
--- A simple function to demonstrate saving using the SaveManager (optional)
-SaveManager:Save("PlayerData", {
-    Coins = 1000,
-    Bait = "Worms",
-    Rod = "Basic Rod"
+-- Add Sections to the Fishing Tab
+local FishSection = Tabs.Fish:AddSection("Fishing Controls")
+FishSection:AddButton({
+    Title = "Test Button",
+    Description = "Click to test functionality.",
+    Callback = function()
+        print("Test Button clicked!")
+    end
 })
 
--- Output debug messages to verify functionality
-print("GUI and ImageLabel with Roblox logo created successfully.")
+-- Additional Test: Add a Toggle to Show/Hide the ImageLabel
+local ImageToggle = Tabs.Fish:AddToggle("Toggle Image", {
+    Title = "Show/Hide Roblox Logo",
+    Default = true,
+    Callback = function(value)
+        if value then
+            ImageLabel.Visible = true
+        else
+            ImageLabel.Visible = false
+        end
+    end
+})
 
--- Optional: Add additional functionality to the GUI as needed
+-- Debug message to confirm successful UI creation
+print("UI Created Successfully with Fluent!")
+
+-- Optional: Minimize the window by default
+Window:Minimize()
+
+
 
 
 
