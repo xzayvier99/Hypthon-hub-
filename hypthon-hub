@@ -2,6 +2,7 @@ repeat task.wait() until game:IsLoaded()
 
 local TimeStart = tick()
 
+-- Loading Fluent and necessary scripts
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
@@ -38,25 +39,43 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
 
--- Replace the white box GUI with your custom asset
+-- Create ImageLabel with debug prints for troubleshooting
 local guiAsset = Instance.new("ImageLabel")
 guiAsset.Size = UDim2.new(0, 580, 0, 350)  -- Adjust size as needed
 guiAsset.Position = UDim2.new(0.5, -290, 0.5, -175)  -- Centered in the screen
 guiAsset.Image = "rbxassetid://1234567890"  -- Your custom asset ID
 guiAsset.BackgroundTransparency = 1
+
+-- Debugging to ensure the asset is loaded
+print("Attempting to load GUI asset...")
 guiAsset.Parent = playerGui
+
+-- Check if the ImageLabel is properly parented
+task.wait(1)  -- wait a moment to ensure the GUI has time to show
+if guiAsset.Parent then
+    print("GUI Asset successfully parented!")
+else
+    print("Failed to parent GUI Asset.")
+end
+
+-- Check if the image is correctly loading
+if guiAsset.Image == "rbxassetid://1234567890" then
+    print("Image asset ID is set correctly.")
+else
+    print("Image asset ID is incorrect.")
+end
 
 --Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
-        Main = Window:AddTab({ Title = "Main", Icon = "box" }),
-        Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
-        Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart"}),
-        Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
-        Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
-        Appraise = Window:AddTab({ Title = "NPC" , Icon = "user"}),
-        Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
-        Server = Window:AddTab({ Title = "Server", Icon = "server" }),
-        Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
+    Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
+    Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart"}),
+    Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
+    Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
+    Appraise = Window:AddTab({ Title = "NPC" , Icon = "user"}),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+    Server = Window:AddTab({ Title = "Server", Icon = "server" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
 Window:Minimize()
@@ -183,6 +202,7 @@ do
         end
     end
 end
+
 
 
 
