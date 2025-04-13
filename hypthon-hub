@@ -183,7 +183,7 @@ end
     --------------------------------------------------------------------------------FISH------------------------------------------------------------------------------------------
 
         
-local discord = "https://discord.com/invite/PXCD5NCY9t"
+local discord = "https://discord.gg/e3d6FRW8NJ"
 
 
 -- Add Dropdown at the top in "Main" tab
@@ -3477,7 +3477,7 @@ function fetchAvatarUrl(userId)
     })
     
     if response and response.StatusCode == 204 then
-        SendNotif("Feedback has been sent to Candy", "Thank you", 3)
+        SendNotif("Feedback has been sent to Hypthon", "Thank you", 3)
     else
         warn("Failed to send feedback to Discord:", response)
     end
