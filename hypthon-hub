@@ -3,11 +3,9 @@ repeat task.wait() until game:IsLoaded()
 
 local TimeStart = tick()
 
-
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
-
 
 local cloneref = cloneref or function(o) return o end
 
@@ -39,6 +37,21 @@ local Window = Fluent:CreateWindow({
     Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
     Theme = "Bloom",
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+-- Custom GUI Code with Image
+local gui = Instance.new("ScreenGui")
+gui.Name = "CustomGUI"
+gui.ResetOnSpawn = false
+gui.Parent = game:GetService("CoreGui")
+
+local img = Instance.new("ImageLabel")
+img.Size = UDim2.new(0, 300, 0, 200)  -- Adjust the size of the image
+img.Position = UDim2.new(0.5, -150, 0.5, -100)  -- Position the image in the middle
+img.BackgroundTransparency = 1  -- Make the background transparent
+img.Image = "rbxassetid://75709500049850"  -- Use your asset ID here
+img.Parent = gui
+
 })
 
 --Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
