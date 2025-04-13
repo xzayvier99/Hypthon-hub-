@@ -1,70 +1,184 @@
--- Wait until the game is fully loaded
+
 repeat task.wait() until game:IsLoaded()
 
--- Local Variables for Roblox Services
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local TimeStart = tick()
 
--- Create an ImageLabel to show the Roblox logo (test image)
-local ImageLabel = Instance.new("ImageLabel")
-ImageLabel.Size = UDim2.new(0, 580, 0, 350)  -- Set the size of the image
-ImageLabel.Position = UDim2.new(0.5, -290, 0.5, -175)  -- Center on the screen
-ImageLabel.Image = "rbxassetid://403157015"  -- Roblox logo image
-ImageLabel.BackgroundTransparency = 1  -- Make the background transparent
-ImageLabel.Parent = playerGui  -- Parent the image to the PlayerGui so it's visible on screen
 
--- Basic debug print to confirm that the script has run
-print("Roblox logo displayed successfully!")
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
--- Create a simple Fluent window (minimal setup)
-local Fluent
-local success, errorMsg = pcall(function()
-    Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-end)
 
-if not Fluent then
-    -- If Fluent failed to load, print the error
-    print("Failed to load Fluent. Error: " .. errorMsg)
-    return
-else
-    print("Fluent library loaded successfully!")
-end
+local cloneref = cloneref or function(o) return o end
 
--- Create a simple window with Fluent
+local COREGUI = cloneref(game:GetService("CoreGui"))
+local Players = cloneref(game:GetService("Players"))
+local Workspace = cloneref(game:GetService("Workspace"))
+local StarterGui = cloneref(game:GetService("StarterGui"))
+local LocalPlayer = cloneref(game.Players.LocalPlayer)
+local Player = cloneref(game.Players.LocalPlayer)
+local HttpService = cloneref(game:GetService("HttpService"))
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+local UserInputService = cloneref(game:GetService("UserInputService"))
+local virtualInput = cloneref(game:GetService("VirtualInputManager"))
+local Character = cloneref(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
+local Humanoid = cloneref(Character:WaitForChild("Humanoid"))
+local HumanoidRootPart = cloneref(Character:WaitForChild("HumanoidRootPart"))
+local runService = cloneref(game:GetService("RunService"))
+
+local player = cloneref(game:GetService("Players").LocalPlayer)
+local playerGui = cloneref(player:WaitForChild("PlayerGui"))
+
+queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+
 local Window = Fluent:CreateWindow({
-    Title = "Test GUI",
-    SubTitle = "Fluent Test",
+    Title = "Hypthon Hub (dev)",
+    SubTitle = "Fisch",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 350),
-    Acrylic = false,  -- Disable blur effect for testing
-    Theme = "Bloom",  -- Set theme
-    MinimizeKey = Enum.KeyCode.LeftControl  -- Minimize key
+    Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Bloom",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
 
--- Add a basic "Test Button" to the window
+--Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "box" }),
+        Main = Window:AddTab({ Title = "Main", Icon = "box" }),
+        Fish = Window:AddTab({ Title = "Fishing", Icon = "waves" }),
+        Purchase = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart"}),
+        Teleport = Window:AddTab({ Title = "Teleport", Icon = "map-pin" }),
+        Event = Window:AddTab({ Title = "Event", Icon = "calendar-x" }),
+        Appraise = Window:AddTab({ Title = "NPC" , Icon = "user"}),
+        Misc = Window:AddTab({ Title = "Misc", Icon = "aperture" }),
+        Server = Window:AddTab({ Title = "Server", Icon = "server" }),
+        Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
-local Section = Tabs.Main:AddSection("Test Section")
-Section:AddButton({
-    Title = "Click me!",
-    Description = "This is a test button.",
-    Callback = function()
-        print("Button clicked!")
-    end
-})
-
--- Minimize the window by default
 Window:Minimize()
 
+function SendNotif(title, content, time)
+    Fluent:Notify({
+            Title = title,
+            Content = content,
+            Duration = time
+    })
+    end
+
+local Options = Fluent.Options
+
+do
+
+    function TeleportToPlayer(playerName)
+        local targetPlayer = game.Players:FindFirstChild(playerName)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+            game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+        end
+end
+
+function GetOtherPlayers()
+        local players = {}
+        for _, Player in ipairs(game.Players:GetPlayers()) do
+            if Player ~= game.Players.LocalPlayer then
+                table.insert(players, Player.Name)
+            end
+        end
+        return players
+end
+
+function isButtonActive()
+    local shakeui = me.PlayerGui:FindFirstChild("shakeui")
+    if shakeui then
+        local button = shakeui.safezone:FindFirstChild("button")
+        return button ~= nil  
+    end
+    return false
+end
 
 
+local teleportMethod = "Tween"  -- Set this to either "Instant" or "Tween"
+local moveSpeed = 100 -- Default speed for smooth movement
+local arrivalThreshold = 1 -- How close to target before stopping
+local slowDownDistance = 20 -- Distance within which to slow down
 
+function TeleportPlayer(TargetCFrame)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
 
+    if rootPart then
+        local targetPosition = TargetCFrame.Position
 
+        -- "Instant" teleport method
+        if teleportMethod == "Instant" then
+            rootPart.CFrame = CFrame.new(targetPosition)
+            return
+        end
 
+        -- "Tween" (smooth movement) teleport method with conditional damping
+        while (rootPart.Position - targetPosition).Magnitude > arrivalThreshold do
+            local currentPos = rootPart.Position
+            local distance = (targetPosition - currentPos).Magnitude
 
+            -- Adjust speed only when within the slowdown distance
+            local adjustedSpeed = distance < slowDownDistance and math.clamp(distance * 0.5, 5, moveSpeed) or moveSpeed
+
+            local direction = (targetPosition - currentPos).Unit
+            local newPosition = currentPos + direction * adjustedSpeed * game:GetService("RunService").Heartbeat:Wait()
+            rootPart.CFrame = CFrame.new(newPosition)
+        end
+    end
+end
+
+local AutoFreeze = false
+
+local bodyVelocity, bodyGyro
+local initialCFrame
+
+function rememberPosition()
+    -- Check if AutoFreeze is enabled
+    if AutoFreeze then
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+        
+        -- Initialize BodyVelocity and BodyGyro only once
+        if not bodyVelocity then
+            bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyVelocity.Parent = rootPart
+        end
+
+        if not bodyGyro then
+            bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bodyGyro.D = 100
+            bodyGyro.P = 10000
+            bodyGyro.Parent = rootPart
+        end
+
+        -- Set initial CFrame if not already set
+        if not initialCFrame then
+            initialCFrame = rootPart.CFrame
+            bodyGyro.CFrame = initialCFrame
+        end
+        
+        -- Lock the player's position
+        rootPart.CFrame = initialCFrame
+    else
+        -- Cleanup when AutoFreeze is disabled
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+            bodyVelocity = nil
+        end
+        if bodyGyro then
+            bodyGyro:Destroy()
+            bodyGyro = nil
+        end
+        initialCFrame = nil
+    end
+end
 
     --------------------------------------------------------------------------------FISH------------------------------------------------------------------------------------------
 
