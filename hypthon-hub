@@ -17,23 +17,6 @@ local COREGUI = cloneref(game:GetService("CoreGui"))
 local Players = cloneref(game:GetService("Players"))
 local Players = cloneref(game:GetService("Players"))
 
--- Function to display the logo
-function displayLogo()
-    local screenGui = Instance.new("ScreenGui")
-    local imageLabel = Instance.new("ImageLabel")
-    
-    screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-    screenGui.Name = "ExecutorLogoBackground"
-
-    imageLabel.Parent = screenGui
-    imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-    imageLabel.Position = UDim2.new(0.5, 0, 0.5, 0) -- Center
-    imageLabel.Size = UDim2.new(1, 0, 1, 0) -- Full screen
-    imageLabel.Image = "https://i.imgur.com/cKKM90Y.png" -- Your executor logo
-    imageLabel.BackgroundTransparency = 1
-    imageLabel.ZIndex = -1 -- Send it to the back
-end
-
 -- Call the function to set the background logo
 displayLogo()
 
