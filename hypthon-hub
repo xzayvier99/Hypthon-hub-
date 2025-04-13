@@ -6,30 +6,13 @@ local TimeStart = tick()
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-
-
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 
 local cloneref = cloneref or function(o) return o end
 
 local COREGUI = cloneref(game:GetService("CoreGui"))
 local Players = cloneref(game:GetService("Players"))
-local Players = cloneref(game:GetService("Players"))
-
--- Call the function to set the background logo
-displayLogo()
-
--- Existing GUI code
-local Window = Fluent:CreateWindow({
-    Title = "Hypthon Hub (dev)",
-    SubTitle = "Fisch",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 350),
-    Acrylic = false, -- The blur may be detectable, setting this to false disables blur entirely
-    Theme = "Bloom",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Used when there's no MinimizeKeybind
-})
 local Workspace = cloneref(game:GetService("Workspace"))
 local StarterGui = cloneref(game:GetService("StarterGui"))
 local LocalPlayer = cloneref(game.Players.LocalPlayer)
